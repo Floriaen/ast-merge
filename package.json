@@ -1,0 +1,23 @@
+{
+  "name": "ast-merge",
+  "version": "1.0.0",
+  "description": "A module to merge code seamlessly, handling duplication and conflicts.",
+  "main": "src/index.js",
+  "files": [
+    "src/index.js",
+    "src/languages/javascript.js"
+  ],
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "escodegen": "^2.0.0",
+    "esprima-next": "^5.0.0",
+    "estraverse": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "type": "module",
+  "license": "MIT"
+}
