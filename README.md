@@ -18,7 +18,7 @@ This module merges a piece of code seamlessly into another one, handling functio
 
 **Local usage:**
 ```javascript
-import { mergeCode } from './src/index.js';
+const { mergeCode } = require('./src/index.js');
 
 const currentCode = `function foo() { return 1; }`;
 const stepCode = `function bar() { return 2; }`;
@@ -28,7 +28,7 @@ console.log(merged);
 
 **NPM usage (after publishing):**
 ```javascript
-import { mergeCode } from 'ast-merge';
+const { mergeCode } = require('ast-merge');
 // usage as above
 ```
 

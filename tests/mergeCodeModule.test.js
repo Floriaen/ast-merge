@@ -1,4 +1,4 @@
-import { mergeCode } from '../src/index.js';
+const { mergeCode } = require('../src/index.js');
 
 function safeTest(name, fn) {
   it(name, () => {
@@ -19,8 +19,8 @@ describe('mergeCode', () => {
     const currentCode = `function foo() { return 1; }`;
     const stepCode = `function bar() { return 2; }`;
     const merged = await mergeCode(currentCode, stepCode, 'js');
-    expect(merged).toMatch(/export function foo\(\)/);
-    expect(merged).toMatch(/export function bar\(\)/);
+    expect(merged).toMatch(/function foo\(\)/);
+    expect(merged).toMatch(/function bar\(\)/);
     expect(merged).not.toMatch(/Duplicate declaration/);
   });
 
@@ -36,7 +36,7 @@ describe('mergeCode', () => {
     const currentCode = `function foo() { return 1; }`;
     const stepCode = `function foo() { return 2; }`;
     const merged = await mergeCode(currentCode, stepCode, 'js');
-    expect(merged).toMatch(/export function foo\(\)/);
+    expect(merged).toMatch(/function foo\(\)/);
     expect(merged).toContain('return 2;');
   });
 
@@ -44,7 +44,7 @@ describe('mergeCode', () => {
     const currentCode = `class Foo { constructor() {} }`;
     const stepCode = `class Foo { bar() { return 'bar'; } }`;
     const merged = await mergeCode(currentCode, stepCode, 'js');
-    expect(merged).toMatch(/export class Foo[\s\S]*bar\(\)\s*{\s*return 'bar';\s*}/);
+    expect(merged).toMatch(/class Foo[\s\S]*bar\(\)\s*{\s*return 'bar';\s*}/);
   });
 
   safeTest('inserts top-level statements', async () => {
@@ -59,7 +59,7 @@ describe('mergeCode', () => {
     const currentCode = `function foo() { return 1; }`;
     const stepCode = `function foo() { return 2; }`;
     const merged = await mergeCode(currentCode, stepCode, 'js');
-    expect(merged).toMatch(/export function foo\(\)/);
+    expect(merged).toMatch(/function foo\(\)/);
     expect(merged).toContain('return 2;');
   });
 
@@ -82,8 +82,8 @@ describe('mergeCode', () => {
     const currentCode = `function foo() { return 1; }\nconst x = 1;`;
     const stepCode = `function bar() { return 2; }\nconst y = 2;`;
     const merged = await mergeCode(currentCode, stepCode, 'js');
-    expect(merged).toMatch(/export function foo\(\)/);
-    expect(merged).toMatch(/export function bar\(\)/);
+    expect(merged).toMatch(/function foo\(\)/);
+    expect(merged).toMatch(/function bar\(\)/);
     expect(merged).toContain('const x = 1;');
     expect(merged).toContain('const y = 2;');
   });

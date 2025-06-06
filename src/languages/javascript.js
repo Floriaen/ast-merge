@@ -1,11 +1,10 @@
-import * as escodegen from 'escodegen';
-import esprima from 'esprima-next';
-import estraverse from 'estraverse';
+const esprima = require('esprima-next');
+const escodegen = require('escodegen');
+const estraverse = require('estraverse');
 
 const debug = true;
 
-
-export class javascriptManipulator {
+class javascriptManipulator {
     constructor(code = '') {
         this.code = code;
     }
@@ -502,9 +501,81 @@ export class javascriptManipulator {
     }
 }
 
-
 async function debugLog(...args) {
     if (debug) {
         console.log(...args);
     }
 }
+
+/**
+ * Merges JavaScript code, handling function and variable declarations.
+ * @param {string} currentCode - The current code to merge into.
+ * @param {string} stepCode - The code to merge.
+ * @returns {Promise<string>} The merged code.
+ */
+async function mergeCode(currentCode, stepCode) {
+  const currentAST = esprima.parseScript(currentCode, { loc: true });
+  const stepAST = esprima.parseScript(stepCode, { loc: true });
+
+  // Merge the ASTs
+  const mergedAST = mergeASTs(currentAST, stepAST);
+
+  // Generate code from the merged AST
+  return escodegen.generate(mergedAST);
+}
+
+/**
+ * Merges two JavaScript ASTs.
+ * @param {Object} currentAST - The current AST.
+ * @param {Object} stepAST - The AST to merge.
+ * @returns {Object} The merged AST.
+ */
+function mergeASTs(currentAST, stepAST) {
+  const mergedAST = { ...currentAST };
+  const currentDeclarations = new Map();
+  const stepDeclarations = new Map();
+
+  // Collect declarations from current AST
+  estraverse.traverse(currentAST, {
+    enter: function(node) {
+      if (node.type === 'FunctionDeclaration' || node.type === 'VariableDeclaration') {
+        const name = node.type === 'FunctionDeclaration' ? node.id.name : node.declarations[0].id.name;
+        currentDeclarations.set(name, node);
+      }
+    }
+  });
+
+  // Collect declarations from step AST
+  estraverse.traverse(stepAST, {
+    enter: function(node) {
+      if (node.type === 'FunctionDeclaration' || node.type === 'VariableDeclaration') {
+        const name = node.type === 'FunctionDeclaration' ? node.id.name : node.declarations[0].id.name;
+        stepDeclarations.set(name, node);
+      }
+    }
+  });
+
+  // Merge declarations
+  for (const [name, node] of stepDeclarations) {
+    if (currentDeclarations.has(name)) {
+      // Replace existing declaration
+      const index = mergedAST.body.findIndex(n => 
+        (n.type === 'FunctionDeclaration' && n.id.name === name) ||
+        (n.type === 'VariableDeclaration' && n.declarations[0].id.name === name)
+      );
+      if (index !== -1) {
+        mergedAST.body[index] = node;
+      }
+    } else {
+      // Add new declaration
+      mergedAST.body.push(node);
+    }
+  }
+
+  return mergedAST;
+}
+
+module.exports = {
+    javascriptManipulator,
+    mergeCode
+};
